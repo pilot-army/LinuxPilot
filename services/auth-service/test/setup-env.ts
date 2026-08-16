@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { config } from 'dotenv';
 import { resolve } from 'node:path';
 import { generateRsaKeyPair } from '@linuxpilot/config';
@@ -9,7 +10,17 @@ if (process.env.DATABASE_URL_TEST) {
   process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
 }
 
-if (!process.env.JWT_ACCESS_PRIVATE_KEY && !process.env.JWT_ACCESS_PRIVATE_KEY_PATH) {
+const privateKeyPath = process.env.JWT_ACCESS_PRIVATE_KEY_PATH;
+const publicKeyPath = process.env.JWT_ACCESS_PUBLIC_KEY_PATH;
+const keyFilesExist = Boolean(
+  privateKeyPath && publicKeyPath && existsSync(privateKeyPath) && existsSync(publicKeyPath),
+);
+if (!keyFilesExist) {
+  delete process.env.JWT_ACCESS_PRIVATE_KEY_PATH;
+  delete process.env.JWT_ACCESS_PUBLIC_KEY_PATH;
+}
+
+if (!process.env.JWT_ACCESS_PRIVATE_KEY) {
   const keys = generateRsaKeyPair();
   process.env.JWT_ACCESS_PRIVATE_KEY = keys.privateKey;
   process.env.JWT_ACCESS_PUBLIC_KEY = keys.publicKey;
