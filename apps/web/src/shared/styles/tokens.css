@@ -1,0 +1,129 @@
+:root {
+  color-scheme: dark;
+
+  --auth-bg: #05070d;
+  --auth-elevated: #0a1020;
+  --auth-card: #10182a;
+  --auth-card-hover: #141e34;
+  --auth-border: #1c2740;
+  --auth-text: #f8fafc;
+  --auth-muted: #8b9bb8;
+  --auth-dimmed: #6b7a96;
+  --auth-primary: #315bff;
+  --auth-primary-hover: #4b70ff;
+  --auth-cyan: #27c2ff;
+  --auth-success: #22c55e;
+  --auth-warning: #f59e0b;
+  --auth-danger: #ef4444;
+
+  --color-background: #05070d;
+  --color-background-elevated: #0a1020;
+  --color-surface: #10182a;
+  --color-surface-hover: #141e34;
+  --color-border: #1c2740;
+  --color-border-muted: #162033;
+  --color-border-strong: #2a3a58;
+  --color-border-accent: #315bff;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #8b9bb8;
+  --color-text-muted: #6b7a96;
+  --color-text-inverse: #05070d;
+  --color-on-primary: #f8fafc;
+
+  --color-primary: #315bff;
+  --color-primary-hover: #4b70ff;
+  --color-primary-active: #2448e0;
+  --color-cyan: #27c2ff;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  --color-success-soft: rgba(34, 197, 94, 0.14);
+  --color-warning-soft: rgba(245, 158, 11, 0.12);
+  --color-danger-soft: rgba(239, 68, 68, 0.12);
+  --color-primary-soft: rgba(49, 91, 255, 0.16);
+
+  --color-bg-primary: var(--color-background);
+  --color-bg-secondary: var(--color-background-elevated);
+  --color-bg-tertiary: #0a1018;
+  --color-surface-elevated: #162033;
+  --color-accent-primary: var(--color-primary);
+  --color-accent-primary-hover: var(--color-primary-hover);
+  --color-accent-primary-pressed: var(--color-primary-active);
+  --color-accent-secondary: var(--color-cyan);
+  --color-accent-soft: var(--color-primary-soft);
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SFMono-Regular', 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2rem;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.4;
+  --leading-normal: 1.55;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-panel: 0 24px 64px rgba(2, 6, 12, 0.45);
+  --shadow-inset: inset 0 1px 0 rgba(248, 250, 252, 0.04);
+  --shadow-menu: 0 12px 32px rgba(2, 6, 12, 0.45);
+  --shadow-glow: 0 0 40px rgba(49, 91, 255, 0.18);
+
+  --z-base: 0;
+  --z-raised: 1;
+  --z-overlay: 10;
+  --z-dropdown: 30;
+
+  --duration-fast: 180ms;
+  --duration-md: 220ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --focus-ring: 0 0 0 3px rgba(49, 91, 255, 0.45);
+  --control-height: 3.5rem;
+  --touch-min: 3rem;
+
+  --container-max: 90rem;
+  --form-max: 30rem;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --control-height: 3rem;
+  }
+}
+
+@media (min-width: 720px) {
+  :root {
+    --text-2xl: 1.875rem;
+    --text-3xl: 2.25rem;
+  }
+}

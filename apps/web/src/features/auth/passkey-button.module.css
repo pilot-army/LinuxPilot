@@ -1,0 +1,71 @@
+.wrap {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.content {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  max-width: 100%;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(100, 130, 190, 0.22);
+  border-radius: 10px;
+  background: rgba(16, 28, 52, 0.72);
+  color: #c2cde0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.dismiss {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.15rem -0.1rem 0 0;
+  border-radius: 6px;
+  color: #c2cde0;
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.dismiss:hover {
+  color: var(--color-text-primary);
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.dismiss:focus-visible {
+  box-shadow: var(--focus-ring);
+}
+
+.dismissIcon {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dismiss {
+    transition: none;
+  }
+}

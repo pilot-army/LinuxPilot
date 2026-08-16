@@ -1,0 +1,27 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--color-background);
+}
+
+.code {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.page h1 {
+  margin: 0;
+}
+
+.page p {
+  margin: 0;
+  max-width: 36rem;
+  color: var(--color-text-secondary);
+}

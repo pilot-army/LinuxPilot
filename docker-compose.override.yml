@@ -1,0 +1,36 @@
+# Local development overlay. Docker Compose loads this file automatically.
+# `localhost:8080` serves Vite with hot reload instead of the static nginx image.
+# Production-like UI: docker compose -f docker-compose.yml up -d --build web
+services:
+  auth-migrate:
+    environment:
+      NODE_ENV: development
+
+  auth-service:
+    environment:
+      NODE_ENV: development
+
+  api-gateway:
+    environment:
+      NODE_ENV: development
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      TRUST_PROXY: 'true'
+      FRONTEND_ORIGIN: http://localhost:${WEB_PORT:-8080}
+    ports:
+      - '127.0.0.1:${GATEWAY_PORT:-3000}:3000'
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    environment:
+      VITE_DEV_PORT: 80
+      VITE_HMR_CLIENT_PORT: ${WEB_PORT:-8080}
+      VITE_USE_POLLING: '1'
+      VITE_API_PROXY: http://api-gateway:3000
+    volumes:
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/index.html:/app/apps/web/index.html
+      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts
+      - ./packages/i18n/src:/app/packages/i18n/src
+    command: pnpm --filter @linuxpilot/web exec vite --host 0.0.0.0 --port 80

@@ -1,0 +1,162 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: linuxpilot
+          POSTGRES_PASSWORD: linuxpilot_test_password
+          POSTGRES_DB: linuxpilot_auth_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U linuxpilot -d linuxpilot_auth_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_auth_test
+      DATABASE_URL_TEST: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_auth_test
+      SERVICE_AUTH_SECRET: ci-service-auth-secret-min-32-chars
+      JWT_ISSUER: linuxpilot-auth
+      JWT_AUDIENCE: linuxpilot-gateway
+      JWT_ACCESS_TTL: 15m
+      REFRESH_TOKEN_TTL_DAYS: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate test JWT keys
+        run: |
+          node scripts/generate-dev-secrets.mjs
+          echo "::add-mask::ci-service-auth-secret-min-32-chars"
+          echo "::add-mask::CorrectHorse-Battery9"
+          echo "::add-mask::linuxpilot_test_password"
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Auth service e2e
+        run: pnpm --filter @linuxpilot/auth-service test:e2e
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Prisma migrate deploy
+        working-directory: services/auth-service
+        run: pnpm exec prisma migrate deploy
+
+      - name: Prisma schema validate
+        working-directory: services/auth-service
+        run: pnpm exec prisma validate
+
+      - name: Prisma drift check
+        working-directory: services/auth-service
+        env:
+          SHADOW_DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_auth_shadow
+        run: |
+          pnpm exec prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
+          pnpm exec prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "$SHADOW_DATABASE_URL" --exit-code
+
+      - name: Seed catalog and bootstrap admin
+        env:
+          AUTH_SERVICE_PORT: 3001
+          AUTH_SERVICE_HOST: 127.0.0.1
+          JWT_ACCESS_PRIVATE_KEY_PATH: ${{ github.workspace }}/secrets/jwt-private.pem
+          JWT_ACCESS_PUBLIC_KEY_PATH: ${{ github.workspace }}/secrets/jwt-public.pem
+          ARGON2_MEMORY_COST: '4096'
+          ARGON2_TIME_COST: '2'
+          ARGON2_PARALLELISM: '1'
+          LOG_LEVEL: error
+          AUTH_ADMIN_EMAIL: e2e-admin@example.com
+          AUTH_ADMIN_USERNAME: e2eadmin
+          AUTH_ADMIN_PASSWORD: CorrectHorse-Battery9
+        run: |
+          pnpm db:seed
+          pnpm auth:create-admin
+          pnpm auth:create-admin
+
+      - name: Dependency audit
+        run: pnpm audit --prod --audit-level high
+
+      - name: Docker Compose config
+        env:
+          POSTGRES_USER: linuxpilot
+          POSTGRES_PASSWORD: linuxpilot_test_password
+          POSTGRES_DB: linuxpilot_auth
+          SERVICE_AUTH_SECRET: ci-service-auth-secret-min-32-chars
+          FRONTEND_ORIGIN: http://localhost:8080
+          COOKIE_SECURE: 'true'
+          TRUST_PROXY: 'true'
+        run: docker compose -f docker-compose.yml config --quiet
+
+      - name: Docker images
+        run: |
+          docker build -f services/auth-service/Dockerfile -t linuxpilot-auth-service .
+          docker build -f gateway/api-gateway/Dockerfile -t linuxpilot-api-gateway .
+
+      - name: Install Playwright browser
+        run: pnpm --filter @linuxpilot/web exec playwright install --with-deps chromium
+
+      - name: Browser e2e
+        env:
+          AUTH_SERVICE_PORT: 3001
+          AUTH_SERVICE_HOST: 127.0.0.1
+          GATEWAY_PORT: 3000
+          GATEWAY_HOST: 127.0.0.1
+          FRONTEND_ORIGIN: http://127.0.0.1:4173
+          AUTH_SERVICE_URL: http://127.0.0.1:3001
+          COOKIE_SECURE: 'false'
+          TRUST_PROXY: 'false'
+          LOGIN_RATE_LIMIT: '20'
+          REFRESH_RATE_LIMIT: '20'
+          RATE_LIMIT_TTL_MS: '60000'
+          LOG_LEVEL: error
+          ARGON2_MEMORY_COST: '4096'
+          ARGON2_TIME_COST: '2'
+          ARGON2_PARALLELISM: '1'
+          JWT_ACCESS_PRIVATE_KEY_PATH: ${{ github.workspace }}/secrets/jwt-private.pem
+          JWT_ACCESS_PUBLIC_KEY_PATH: ${{ github.workspace }}/secrets/jwt-public.pem
+          E2E_EMAIL: e2e-admin@example.com
+          E2E_PASSWORD: CorrectHorse-Battery9
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:4173
+        run: bash scripts/ci-web-e2e.sh

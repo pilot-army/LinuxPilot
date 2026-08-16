@@ -1,0 +1,82 @@
+[
+  {
+    "name": "desktop-1440x900-ua",
+    "file": "/Users/oleksandr/Desktop/Project/LinuxPilot/apps/web/screenshots/auth-capabilities/desktop-1440x900-ua.png",
+    "metrics": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 900,
+      "clientHeight": 900,
+      "overflowX": false,
+      "overflowY": false,
+      "formTop": 389.375,
+      "asideTop": 252.390625,
+      "asideDisplay": "grid",
+      "titles": ["Моніторинг", "Docker", "Бази даних", "Термінал"]
+    }
+  },
+  {
+    "name": "desktop-1440x900-en",
+    "file": "/Users/oleksandr/Desktop/Project/LinuxPilot/apps/web/screenshots/auth-capabilities/desktop-1440x900-en.png",
+    "metrics": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440,
+      "scrollHeight": 900,
+      "clientHeight": 900,
+      "overflowX": false,
+      "overflowY": false,
+      "formTop": 389.375,
+      "asideTop": 252.390625,
+      "asideDisplay": "grid",
+      "titles": ["Monitoring", "Docker", "Databases", "Terminal"]
+    }
+  },
+  {
+    "name": "tablet-landscape-1024x768",
+    "file": "/Users/oleksandr/Desktop/Project/LinuxPilot/apps/web/screenshots/auth-capabilities/tablet-landscape-1024x768.png",
+    "metrics": {
+      "scrollWidth": 1024,
+      "clientWidth": 1024,
+      "scrollHeight": 768,
+      "clientHeight": 768,
+      "overflowX": false,
+      "overflowY": false,
+      "formTop": 323.375,
+      "asideTop": 167.265625,
+      "asideDisplay": "grid",
+      "titles": ["Моніторинг", "Docker", "Бази даних", "Термінал"]
+    }
+  },
+  {
+    "name": "tablet-portrait-768x1024",
+    "file": "/Users/oleksandr/Desktop/Project/LinuxPilot/apps/web/screenshots/auth-capabilities/tablet-portrait-768x1024.png",
+    "metrics": {
+      "scrollWidth": 768,
+      "clientWidth": 768,
+      "scrollHeight": 1024,
+      "clientHeight": 1024,
+      "overflowX": false,
+      "overflowY": false,
+      "formTop": 447.625,
+      "asideTop": 0,
+      "asideDisplay": "none",
+      "titles": ["Моніторинг", "Docker", "Бази даних", "Термінал"]
+    }
+  },
+  {
+    "name": "mobile-390x844",
+    "file": "/Users/oleksandr/Desktop/Project/LinuxPilot/apps/web/screenshots/auth-capabilities/mobile-390x844.png",
+    "metrics": {
+      "scrollWidth": 390,
+      "clientWidth": 390,
+      "scrollHeight": 844,
+      "clientHeight": 844,
+      "overflowX": false,
+      "overflowY": false,
+      "formTop": 357.625,
+      "asideTop": 0,
+      "asideDisplay": "none",
+      "titles": ["Моніторинг", "Docker", "Бази даних", "Термінал"]
+    }
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "name": "linuxpilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Centralized Linux server management panel",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "auth:create-admin": "pnpm --filter @linuxpilot/auth-service create-admin",
+    "db:migrate": "pnpm --filter @linuxpilot/auth-service prisma:migrate",
+    "db:migrate:deploy": "pnpm --filter @linuxpilot/auth-service prisma:migrate:deploy",
+    "db:seed": "pnpm --filter @linuxpilot/auth-service prisma:seed",
+    "secrets:generate": "node scripts/generate-dev-secrets.mjs",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "argon2",
+      "esbuild",
+      "prisma"
+    ]
+  },
+  "devDependencies": {
+    "@eslint/js": "9.18.0",
+    "eslint": "9.18.0",
+    "globals": "15.14.0",
+    "prettier": "3.4.2",
+    "turbo": "2.3.4",
+    "typescript": "5.7.3",
+    "typescript-eslint": "8.21.0"
+  }
+}

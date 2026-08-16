@@ -1,0 +1,12 @@
+{
+  "items": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "servers": "Servers",
+    "settings": "Settings",
+    "profile": "Profile",
+    "security": "Security",
+    "sessions": "Sessions"
+  }
+}

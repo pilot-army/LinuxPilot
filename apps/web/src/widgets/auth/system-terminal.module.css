@@ -1,0 +1,135 @@
+.terminal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 620px;
+  height: 170px;
+  overflow: hidden;
+  border: 1px solid rgba(110, 140, 190, 0.22);
+  border-radius: 14px;
+  background: rgba(5, 10, 20, 0.88);
+  box-shadow:
+    0 18px 36px rgba(2, 6, 12, 0.38),
+    0 0 24px rgba(49, 91, 255, 0.14);
+}
+
+.titlebar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.7rem;
+  height: 44px;
+  padding: 0 0.95rem;
+  border-bottom: 1px solid rgba(110, 140, 190, 0.16);
+}
+
+.controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.control {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(148, 163, 184, 0.36);
+}
+
+.control:nth-child(2) {
+  background: rgba(148, 163, 184, 0.3);
+}
+
+.control:nth-child(3) {
+  background: rgba(148, 163, 184, 0.24);
+}
+
+.session {
+  min-width: 0;
+  overflow: hidden;
+  color: #9aa8bf;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0.85rem 1.05rem;
+  overflow: hidden;
+  color: #d7deea;
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  white-space: pre;
+}
+
+.command {
+  color: #7ec8ff;
+}
+
+.row {
+  display: block;
+}
+
+.bullet {
+  color: #4ade80;
+}
+
+.name {
+  color: #e8eef7;
+}
+
+.active,
+.protected {
+  color: #4ade80;
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.52em;
+  height: 1.05em;
+  margin-top: 0.15em;
+  background: rgba(186, 210, 240, 0.82);
+  vertical-align: text-bottom;
+}
+
+@media (max-width: 1023px) {
+  .terminal {
+    max-width: 100%;
+  }
+
+  .titlebar {
+    padding: 0 0.75rem;
+  }
+
+  .body {
+    padding: 0.7rem 0.8rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .terminal {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cursor {
+    animation: blink 1.15s ease-in-out infinite;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.18;
+  }
+}

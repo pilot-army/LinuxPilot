@@ -1,0 +1,9 @@
+{
+  "unknown": "Unknown error",
+  "forbidden": "Access denied",
+  "unauthorized": "Authentication required",
+  "notFound": "Resource not found",
+  "server": "Server error",
+  "network": "Network error",
+  "tooManyRequests": "Too many requests"
+}

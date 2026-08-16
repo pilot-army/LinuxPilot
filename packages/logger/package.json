@@ -1,0 +1,27 @@
+{
+  "name": "@linuxpilot/logger",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "pino": "9.6.0",
+    "pino-pretty": "13.0.0"
+  },
+  "devDependencies": {
+    "@linuxpilot/tsconfig": "workspace:*",
+    "@types/node": "22.10.7",
+    "typescript": "5.7.3"
+  }
+}

@@ -1,0 +1,104 @@
+.page {
+  min-height: 100%;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: radial-gradient(ellipse 46% 38% at 16% 18%, rgba(49, 91, 255, 0.16), transparent 62%),
+    radial-gradient(ellipse 36% 32% at 86% 78%, rgba(39, 194, 255, 0.06), transparent 70%),
+    var(--auth-bg);
+  color: var(--auth-text);
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: min(100%, 90rem);
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding: calc(0.85rem + env(safe-area-inset-top)) max(1.25rem, env(safe-area-inset-right))
+    calc(1.25rem + env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-left));
+}
+
+.header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 3.25rem;
+}
+
+.main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  padding-top: 1.5rem;
+}
+
+.brand {
+  display: none;
+}
+
+.panel {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+
+@media (max-width: 359px) {
+  .shell {
+    padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+  }
+}
+
+@media (min-width: 1024px) {
+  .shell {
+    padding: calc(1.25rem + env(safe-area-inset-top)) clamp(24px, 5vw, 72px)
+      calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    column-gap: clamp(48px, 5vw, 72px);
+    align-items: center;
+    flex: 1 1 auto;
+    padding-top: 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .panel {
+    align-items: center;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page {
+    animation: fade-in var(--duration-md) var(--ease-out);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    animation: none;
+  }
+}

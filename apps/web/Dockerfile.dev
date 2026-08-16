@@ -1,0 +1,16 @@
+FROM node:22-bookworm-slim
+ENV COREPACK_HOME=/usr/local/share/corepack
+RUN mkdir -p "$COREPACK_HOME" \
+  && corepack enable \
+  && corepack prepare pnpm@10.34.5 --activate \
+  && chmod -R a+rX "$COREPACK_HOME"
+WORKDIR /app
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json turbo.json ./
+COPY packages ./packages
+COPY apps/web ./apps/web
+RUN pnpm install --frozen-lockfile --filter @linuxpilot/web...
+ENV VITE_DEV_PORT=80
+ENV VITE_HMR_CLIENT_PORT=8080
+ENV VITE_USE_POLLING=1
+EXPOSE 80
+CMD ["pnpm", "--filter", "@linuxpilot/web", "exec", "vite", "--host", "0.0.0.0", "--port", "80"]

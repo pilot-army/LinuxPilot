@@ -1,0 +1,121 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  PENDING
+}
+
+model User {
+  id                 String     @id @default(uuid()) @db.Uuid
+  email              String     @unique
+  username           String
+  usernameNormalized String     @unique
+  passwordHash       String
+  status             UserStatus @default(PENDING)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  sessions           Session[]
+  roles              UserRole[]
+  auditLogs          AuditLog[]
+
+  @@index([status])
+  @@index([email])
+  @@index([usernameNormalized])
+}
+
+model Session {
+  id                       String             @id @default(uuid()) @db.Uuid
+  userId                   String             @db.Uuid
+  user                     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId                 String             @db.Uuid
+  refreshTokenHash         String             @unique
+  previousRefreshTokenHash String?
+  refreshVersion           Int                @default(1)
+  rotatedAt                DateTime?
+  userAgent                String?
+  ipAddress                String?
+  expiresAt                DateTime
+  revokedAt                DateTime?
+  createdAt                DateTime           @default(now())
+  usedRefreshTokens        UsedRefreshToken[]
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
+  @@index([userId, revokedAt])
+  @@index([previousRefreshTokenHash])
+}
+
+model UsedRefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  familyId  String   @db.Uuid
+  sessionId String   @db.Uuid
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  usedAt    DateTime @default(now())
+
+  @@index([familyId])
+  @@index([sessionId])
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  name        String           @unique
+  description String?
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  code        String           @unique
+  description String?
+  roles       RolePermission[]
+}
+
+model UserRole {
+  userId String @db.Uuid
+  roleId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  targetType String
+  targetId   String?
+  requestId  String?
+  ipAddress  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+}

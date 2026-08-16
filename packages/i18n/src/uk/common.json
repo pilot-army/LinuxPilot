@@ -1,0 +1,32 @@
+{
+  "brand": {
+    "name": "LinuxPilot"
+  },
+  "actions": {
+    "save": "Зберегти",
+    "cancel": "Скасувати",
+    "delete": "Видалити",
+    "edit": "Змінити",
+    "create": "Створити",
+    "confirm": "Підтвердити",
+    "close": "Закрити",
+    "back": "Назад",
+    "continue": "Продовжити"
+  },
+  "status": {
+    "loading": "Завантаження..."
+  },
+  "labels": {
+    "search": "Пошук",
+    "unknown": "Невідомо"
+  },
+  "answers": {
+    "yes": "Так",
+    "no": "Ні"
+  },
+  "language": {
+    "switcher": "Мова",
+    "uk": "UA",
+    "en": "EN"
+  }
+}
