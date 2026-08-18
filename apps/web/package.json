@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host localhost --port 8080",
+    "dev": "vite",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint src",
@@ -16,13 +16,16 @@
     "@linuxpilot/auth-contracts": "workspace:*",
     "@linuxpilot/common": "workspace:*",
     "@linuxpilot/i18n": "workspace:*",
+    "@linuxpilot/server-contracts": "workspace:*",
+    "lucide-react": "1.31.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-router-dom": "7.18.2"
+    "react-router-dom": "7.18.2",
+    "yaml": "2.9.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.54.2",
     "@linuxpilot/tsconfig": "workspace:*",
+    "@playwright/test": "1.54.2",
     "@testing-library/jest-dom": "6.6.3",
     "@testing-library/react": "16.2.0",
     "@types/react": "19.0.8",

@@ -1,0 +1,1 @@
+ALTER TABLE "Server" ADD COLUMN "autoDetectSystem" BOOLEAN NOT NULL DEFAULT true;

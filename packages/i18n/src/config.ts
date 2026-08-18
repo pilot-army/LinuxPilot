@@ -2,7 +2,15 @@ export const supportedLocales = ['uk', 'en'] as const;
 
 export type Locale = (typeof supportedLocales)[number];
 
-export const namespaces = ['common', 'auth', 'navigation', 'validation', 'errors'] as const;
+export const namespaces = [
+  'common',
+  'auth',
+  'navigation',
+  'validation',
+  'errors',
+  'servers',
+  'dashboard',
+] as const;
 
 export type Namespace = (typeof namespaces)[number];
 

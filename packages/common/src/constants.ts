@@ -11,6 +11,10 @@ export const HEADER_NAMES = {
   serviceTimestamp: 'x-lp-service-timestamp',
   serviceNonce: 'x-lp-service-nonce',
   serviceSignature: 'x-lp-service-signature',
+  agentCredentialId: 'x-lp-agent-credential-id',
+  agentTimestamp: 'x-lp-agent-timestamp',
+  agentNonce: 'x-lp-agent-nonce',
+  agentSignature: 'x-lp-agent-signature',
 } as const;
 
 export const JWT_DEFAULTS = {

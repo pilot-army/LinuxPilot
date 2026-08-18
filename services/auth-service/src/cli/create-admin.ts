@@ -109,9 +109,10 @@ async function main(): Promise<void> {
   const prisma = new PrismaClient({ datasourceUrl: env.DATABASE_URL });
 
   try {
-    const role = await prisma.role.findUnique({ where: { name: ROLES.SUPER_ADMIN } });
+    const roleName = process.env.AUTH_ADMIN_ROLE?.trim() || ROLES.SUPER_ADMIN;
+    const role = await prisma.role.findUnique({ where: { name: roleName } });
     if (!role) {
-      throw new Error('Role super_admin is missing. Run `pnpm db:seed` first.');
+      throw new Error(`Role ${roleName} is missing. Run \`pnpm db:seed\` first.`);
     }
 
     const existing = await prisma.user.findFirst({
@@ -119,7 +120,7 @@ async function main(): Promise<void> {
     });
     if (existing) {
       if (existing.email === email && existing.usernameNormalized === usernameNormalized) {
-        console.log(`Admin ${existing.username} already exists; leaving unchanged`);
+        console.log(`User ${existing.username} already exists; leaving unchanged`);
         return;
       }
       throw new Error('A user with this email or username already exists');
@@ -143,7 +144,7 @@ async function main(): Promise<void> {
       },
     });
 
-    console.log(`Created super_admin user ${user.username} <${user.email}>`);
+    console.log(`Created ${roleName} user ${user.username} <${user.email}>`);
   } finally {
     await prisma.$disconnect();
   }

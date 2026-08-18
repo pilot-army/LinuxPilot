@@ -9,6 +9,7 @@ const validEnv: NodeJS.ProcessEnv = {
   GATEWAY_HOST: '0.0.0.0',
   FRONTEND_ORIGIN: 'http://localhost:5173',
   AUTH_SERVICE_URL: 'http://localhost:3001',
+  SERVER_SERVICE_URL: 'http://localhost:3002',
   JWT_ACCESS_PUBLIC_KEY: keys.publicKey,
   JWT_ISSUER: 'linuxpilot-auth',
   JWT_AUDIENCE: 'linuxpilot-gateway',

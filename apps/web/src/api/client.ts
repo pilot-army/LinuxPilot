@@ -3,7 +3,7 @@ import { COOKIE_NAMES, HEADER_NAMES, type ApiError, type ApiSuccess } from '@lin
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 type RequestOptions = {
-  method?: 'GET' | 'POST' | 'DELETE';
+  method?: 'GET' | 'POST' | 'DELETE' | 'PATCH';
   body?: unknown;
   retry?: boolean;
 };
@@ -13,6 +13,7 @@ export class ApiRequestError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    public readonly details: unknown[] = [],
   ) {
     super(message);
     this.name = 'ApiRequestError';
@@ -69,8 +70,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (
-    response.status === 401 &&
-    options.retry !== false &&
+    shouldRefreshSession(response.status, options) &&
     path !== '/auth/refresh' &&
     path !== '/auth/login'
   ) {
@@ -87,6 +87,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       response.status,
       error?.code ?? unavailableCode(response.status),
       error?.message ?? 'Request failed',
+      error?.details ?? [],
     );
   }
 
@@ -104,6 +105,16 @@ async function readJsonPayload<T>(response: Response): Promise<ApiSuccess<T> | A
   } catch {
     return null;
   }
+}
+
+function shouldRefreshSession(status: number, options: RequestOptions): boolean {
+  if (options.retry === false) {
+    return false;
+  }
+  if (status === 401) {
+    return true;
+  }
+  return status === 403 && (options.method ?? 'GET') === 'GET';
 }
 
 function unavailableCode(status: number): string {

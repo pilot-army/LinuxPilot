@@ -5,7 +5,7 @@ import { AppConfigService } from '../../config/app-config.service';
 import { LOGGER } from '../../common/logger/logger.token';
 
 @Controller()
-@SkipThrottle()
+@SkipThrottle({ default: true, login: true, refresh: true, agent: true })
 export class HealthController {
   constructor(
     private readonly config: AppConfigService,
@@ -29,10 +29,28 @@ export class HealthController {
       clearTimeout(timeout);
     }
 
+    let serverService = 'unknown';
+    const serverController = new AbortController();
+    const serverTimeout = setTimeout(
+      () => serverController.abort(),
+      this.config.env.SERVER_SERVICE_TIMEOUT_MS,
+    );
+    try {
+      const response = await fetch(`${this.config.env.SERVER_SERVICE_URL}/health`, {
+        signal: serverController.signal,
+      });
+      serverService = response.ok ? 'ok' : 'degraded';
+    } catch (error) {
+      this.logger.warn({ err: error }, 'Server service health check failed');
+      serverService = 'unavailable';
+    } finally {
+      clearTimeout(serverTimeout);
+    }
+
     return {
-      status: authService === 'ok' ? 'ok' : 'degraded',
+      status: authService === 'ok' && serverService === 'ok' ? 'ok' : 'degraded',
       service: 'api-gateway',
-      dependencies: { authService },
+      dependencies: { authService, serverService },
     };
   }
 }

@@ -10,6 +10,14 @@ services:
     environment:
       NODE_ENV: development
 
+  server-migrate:
+    environment:
+      NODE_ENV: development
+
+  server-service:
+    environment:
+      NODE_ENV: development
+
   api-gateway:
     environment:
       NODE_ENV: development
@@ -29,8 +37,46 @@ services:
       VITE_USE_POLLING: '1'
       VITE_API_PROXY: http://api-gateway:3000
     volumes:
-      - ./apps/web/src:/app/apps/web/src
-      - ./apps/web/index.html:/app/apps/web/index.html
-      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts
-      - ./packages/i18n/src:/app/packages/i18n/src
-    command: pnpm --filter @linuxpilot/web exec vite --host 0.0.0.0 --port 80
+      - type: bind
+        source: ./apps/web/src
+        target: /app/apps/web/src
+        consistency: consistent
+      - type: bind
+        source: ./apps/web/index.html
+        target: /app/apps/web/index.html
+        consistency: consistent
+      - type: bind
+        source: ./apps/web/vite.config.ts
+        target: /app/apps/web/vite.config.ts
+        consistency: consistent
+      # Vite aliases these packages to source. Without live mounts, a rebuilt
+      # web image keeps stale contracts and a new named export crashes the SPA.
+      - type: bind
+        source: ./packages/i18n/src
+        target: /app/packages/i18n/src
+        consistency: consistent
+      - type: bind
+        source: ./packages/common/src
+        target: /app/packages/common/src
+        consistency: consistent
+      - type: bind
+        source: ./packages/auth-contracts/src
+        target: /app/packages/auth-contracts/src
+        consistency: consistent
+      - type: bind
+        source: ./packages/server-contracts/src
+        target: /app/packages/server-contracts/src
+        consistency: consistent
+    command:
+      [
+        'pnpm',
+        '--filter',
+        '@linuxpilot/web',
+        'exec',
+        'vite',
+        '--host',
+        '0.0.0.0',
+        '--port',
+        '80',
+        '--force',
+      ]

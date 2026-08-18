@@ -9,7 +9,7 @@
     "pnpm": ">=9.0.0"
   },
   "scripts": {
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev --parallel --filter=!@linuxpilot/agent",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
@@ -18,8 +18,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "auth:create-admin": "pnpm --filter @linuxpilot/auth-service create-admin",
-    "db:migrate": "pnpm --filter @linuxpilot/auth-service prisma:migrate",
-    "db:migrate:deploy": "pnpm --filter @linuxpilot/auth-service prisma:migrate:deploy",
+    "db:migrate": "pnpm --filter @linuxpilot/auth-service prisma:migrate && pnpm --filter @linuxpilot/server-service prisma:migrate",
+    "db:migrate:deploy": "pnpm --filter @linuxpilot/auth-service prisma:migrate:deploy && pnpm --filter @linuxpilot/server-service prisma:migrate:deploy",
     "db:seed": "pnpm --filter @linuxpilot/auth-service prisma:seed",
     "secrets:generate": "node scripts/generate-dev-secrets.mjs",
     "docker:up": "docker compose up -d --build",

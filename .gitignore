@@ -1,6 +1,7 @@
 node_modules
 .pnpm-store
 dist
+dist-test
 build
 coverage
 .turbo
@@ -24,3 +25,5 @@ playwright-report
 test-results
 apps/web/playwright-report
 apps/web/test-results
+services/server-service/src/generated
+services/server-service/dist

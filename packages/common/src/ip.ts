@@ -53,7 +53,7 @@ export function parseForwardedFor(header: string | undefined): string | undefine
   return first;
 }
 
-export function sanitizeIpAddress(value: string | undefined): string | undefined {
+export function sanitizeIpAddress(value: string | null | undefined): string | undefined {
   if (!value) {
     return undefined;
   }

@@ -21,3 +21,5 @@ export { isValidIp, parseForwardedFor, sanitizeIpAddress } from './ip';
 export { evaluatePassword, PasswordPolicyError } from './password-policy';
 export { createRequestId, sanitizeRequestId } from './request-id';
 export { parseDurationToSeconds, parseDurationToMs, daysToMs, daysToSeconds } from './ttl';
+export { listenWithRetry, isAddressInUse, type ListenRetryOptions } from './listen';
+export { installProcessGuards, type ProcessGuardLogger } from './process-guards';

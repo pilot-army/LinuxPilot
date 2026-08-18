@@ -85,6 +85,76 @@ services:
     networks:
       - backend
 
+  server-migrate:
+    build:
+      context: .
+      dockerfile: services/server-service/Dockerfile
+      target: migrate
+    restart: 'no'
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/linuxpilot_servers
+      COREPACK_ENABLE_NETWORK: '0'
+    command: ['/app/services/server-service/node_modules/.bin/prisma', 'migrate', 'deploy']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
+  server-service:
+    build:
+      context: .
+      dockerfile: services/server-service/Dockerfile
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    user: '10001:10001'
+    environment:
+      NODE_ENV: production
+      SERVER_SERVICE_HOST: 0.0.0.0
+      SERVER_SERVICE_PORT: 3002
+      DATABASE_URL: postgresql://${POSTGRES_USER:?POSTGRES_USER is required}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/linuxpilot_servers
+      JWT_ACCESS_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
+      JWT_ISSUER: ${JWT_ISSUER:-linuxpilot-auth}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-linuxpilot-gateway}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      SERVICE_AUTH_SECRET: ${SERVICE_AUTH_SECRET:?SERVICE_AUTH_SECRET is required}
+      HEARTBEAT_INTERVAL_MS: ${HEARTBEAT_INTERVAL_MS:-30000}
+      OFFLINE_TIMEOUT_MS: ${OFFLINE_TIMEOUT_MS:-90000}
+      ENROLLMENT_TOKEN_TTL_MS: ${ENROLLMENT_TOKEN_TTL_MS:-900000}
+      METRICS_RETENTION_DAYS: ${METRICS_RETENTION_DAYS:-14}
+      METRICS_CLEANUP_INTERVAL_MS: ${METRICS_CLEANUP_INTERVAL_MS:-900000}
+      METRICS_CLEANUP_BATCH_SIZE: ${METRICS_CLEANUP_BATCH_SIZE:-500}
+      STATUS_SWEEP_INTERVAL_MS: ${STATUS_SWEEP_INTERVAL_MS:-30000}
+      AGENT_TIMESTAMP_WINDOW_MS: ${AGENT_TIMESTAMP_WINDOW_MS:-30000}
+      AGENT_REQUEST_BODY_LIMIT: ${AGENT_REQUEST_BODY_LIMIT:-32768}
+      PUBLIC_GATEWAY_URL: ${PUBLIC_GATEWAY_URL:-http://localhost:8080}
+      SSH_KEYS_MASTER_KEY: ${SSH_KEYS_MASTER_KEY:?SSH_KEYS_MASTER_KEY is required}
+      SSH_KEYS_MASTER_KEY_VERSION: ${SSH_KEYS_MASTER_KEY_VERSION:-v1}
+    volumes:
+      - ./secrets/jwt-public.pem:/run/secrets/jwt-public.pem:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      server-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3002/ready').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 25s
+    networks:
+      - backend
+
   api-gateway:
     build:
       context: .
@@ -102,6 +172,11 @@ services:
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:?FRONTEND_ORIGIN is required}
       AUTH_SERVICE_URL: http://auth-service:3001
       AUTH_SERVICE_TIMEOUT_MS: ${AUTH_SERVICE_TIMEOUT_MS:-5000}
+      SERVER_SERVICE_URL: http://server-service:3002
+      SERVER_SERVICE_TIMEOUT_MS: ${SERVER_SERVICE_TIMEOUT_MS:-5000}
+      AGENT_RATE_LIMIT: ${AGENT_RATE_LIMIT:-30}
+      AGENT_RATE_LIMIT_TTL_MS: ${AGENT_RATE_LIMIT_TTL_MS:-60000}
+      AGENT_REQUEST_BODY_LIMIT: ${AGENT_REQUEST_BODY_LIMIT:-32768}
       JWT_ACCESS_PUBLIC_KEY_PATH: /run/secrets/jwt-public.pem
       JWT_ISSUER: ${JWT_ISSUER:-linuxpilot-auth}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-linuxpilot-gateway}
@@ -122,6 +197,8 @@ services:
       - ./secrets/jwt-public.pem:/run/secrets/jwt-public.pem:ro
     depends_on:
       auth-service:
+        condition: service_healthy
+      server-service:
         condition: service_healthy
     healthcheck:
       test:

@@ -12,12 +12,19 @@
     "./service-auth": {
       "types": "./dist/service-auth.d.ts",
       "default": "./dist/service-auth.js"
+    },
+    "./agent-auth": {
+      "types": "./dist/agent-auth.d.ts",
+      "default": "./dist/agent-auth.js"
     }
   },
   "typesVersions": {
     "*": {
       "service-auth": [
         "dist/service-auth.d.ts"
+      ],
+      "agent-auth": [
+        "dist/agent-auth.d.ts"
       ]
     }
   },

@@ -16,16 +16,21 @@ const en = resources.en;
 const uk = resources.uk;
 const credentials = { email: 'admin@example.com', password: 'secret-pass' };
 
-const { loginMock, fetchCurrentUserMock, logoutMock } = vi.hoisted(() => ({
+const { loginMock, fetchCurrentUserMock, logoutMock, fetchGatewayHealthMock } = vi.hoisted(() => ({
   loginMock: vi.fn(),
   fetchCurrentUserMock: vi.fn(),
   logoutMock: vi.fn(),
+  fetchGatewayHealthMock: vi.fn(),
 }));
 
 vi.mock('../../api/auth', () => ({
   login: loginMock,
   fetchCurrentUser: fetchCurrentUserMock,
   logout: logoutMock,
+}));
+
+vi.mock('../../api/health', () => ({
+  fetchGatewayHealth: fetchGatewayHealthMock,
 }));
 
 function renderAt(path: string) {
@@ -69,6 +74,12 @@ describe('AuthPage', () => {
     loginMock.mockReset();
     fetchCurrentUserMock.mockReset();
     logoutMock.mockReset();
+    fetchGatewayHealthMock.mockReset();
+    fetchGatewayHealthMock.mockResolvedValue({
+      status: 'ok',
+      service: 'api-gateway',
+      dependencies: { authService: 'ok', serverService: 'ok' },
+    });
     window.localStorage.setItem(LOCALE_STORAGE_KEY, 'en');
     window.localStorage.removeItem(REMEMBER_EMAIL_KEY);
   });
@@ -83,14 +94,18 @@ describe('AuthPage', () => {
       screen.getByRole('heading', { level: 2, name: en.auth.login.title }),
     ).toBeInTheDocument();
     expect(screen.getByText(en.auth.hero.description, { selector: 'p' })).toBeInTheDocument();
-    expect(screen.getByText(en.auth.status.label)).toBeInTheDocument();
-    const terminal = screen.getByText('linuxpilot@server: ~').closest('[aria-hidden="true"]');
-    expect(terminal).toHaveTextContent('$ linuxpilot status');
-    expect(terminal).toHaveTextContent('nginx');
-    expect(terminal).toHaveTextContent('docker');
-    expect(terminal).toHaveTextContent('firewall');
-    expect(terminal).toHaveTextContent('active');
-    expect(terminal).toHaveTextContent('protected');
+    await waitFor(() =>
+      expect(screen.getByTestId('system-status')).toHaveTextContent(en.auth.status.ok),
+    );
+    const terminal = screen.getByTestId('system-terminal');
+    expect(terminal).toHaveTextContent('$ GET /health');
+    expect(terminal).toHaveTextContent('api-gateway');
+    expect(terminal).toHaveTextContent('auth-service');
+    expect(terminal).toHaveTextContent('server-service');
+    expect(terminal).toHaveTextContent('ok');
+    expect(terminal).not.toHaveTextContent('nginx');
+    expect(terminal).not.toHaveTextContent('docker');
+    expect(terminal).not.toHaveTextContent('firewall');
     expect(screen.queryByText('12 servers')).not.toBeInTheDocument();
     expect(screen.queryByText('3.2 TB traffic')).not.toBeInTheDocument();
     expect(screen.queryByText('24/7 monitoring')).not.toBeInTheDocument();
@@ -347,7 +362,9 @@ describe('AuthPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByLabelText(uk.auth.fields.email)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: uk.auth.login.submit })).toBeInTheDocument();
-    expect(screen.getByText(uk.auth.status.label)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId('system-status')).toHaveTextContent(uk.auth.status.ok),
+    );
     expect(document.documentElement.lang).toBe('uk');
     expect(window.localStorage.getItem(LOCALE_STORAGE_KEY)).toBe('uk');
   });

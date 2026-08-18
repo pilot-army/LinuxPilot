@@ -74,6 +74,14 @@ describe('API Gateway', () => {
     expect(authClient.request).not.toHaveBeenCalled();
   });
 
+  it('requires CSRF for browser server mutations', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/v1/servers')
+      .send({ name: 'edge' });
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe(AUTH_ERROR_CODES.CSRF_REJECTED);
+  });
+
   it('replaces an invalid request id', async () => {
     const response = await request(app.getHttpServer())
       .get('/health')
@@ -115,6 +123,13 @@ describe('API Gateway', () => {
     expect(third.status).toBe(429);
     expect(third.body.error.code).toBe(AUTH_ERROR_CODES.RATE_LIMITED);
     expect(refresh.status).toBe(200);
+  });
+
+  it('does not apply login limits to server reads', async () => {
+    for (let index = 0; index < 6; index += 1) {
+      const response = await request(app.getHttpServer()).get('/api/v1/servers');
+      expect(response.status).toBe(401);
+    }
   });
 
   it('clears cookies when logout revoke fails', async () => {

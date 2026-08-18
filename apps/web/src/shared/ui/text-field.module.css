@@ -4,9 +4,32 @@
 }
 
 .label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   color: var(--color-text-secondary);
+}
+
+.requiredMark {
+  color: var(--color-danger);
+  font-weight: var(--weight-semibold);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #08111f;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  line-height: 1;
 }
 
 .control {
@@ -102,13 +125,18 @@
 }
 
 .hint,
-.error {
+.error,
+.success {
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
 }
 
 .hint {
   color: var(--color-warning);
+}
+
+.hintMuted {
+  color: var(--color-text-muted);
 }
 
 .error {
@@ -118,7 +146,15 @@
   color: var(--color-danger);
 }
 
-.errorIcon {
+.success {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.35rem;
+  color: var(--color-success);
+}
+
+.errorIcon,
+.successIcon {
   flex: 0 0 auto;
   width: 0.95rem;
   height: 0.95rem;

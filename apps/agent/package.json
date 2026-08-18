@@ -1,0 +1,28 @@
+{
+  "name": "@linuxpilot/agent",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "linuxpilot-agent": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "start": "node dist/cli.js",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test src/collectors.spec.ts"
+  },
+  "dependencies": {
+    "@linuxpilot/common": "workspace:*",
+    "@linuxpilot/config": "workspace:*",
+    "@linuxpilot/server-contracts": "workspace:*",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@linuxpilot/tsconfig": "workspace:*",
+    "@types/node": "22.10.7",
+    "tsx": "4.19.2",
+    "typescript": "5.7.3"
+  }
+}

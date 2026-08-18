@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { config as loadDotenv } from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { type NestExpressApplication } from '@nestjs/platform-express';
-import { REQUEST_BODY_LIMIT } from '@linuxpilot/common';
+import { REQUEST_BODY_LIMIT, installProcessGuards, listenWithRetry } from '@linuxpilot/common';
 import { createLogger, type AppLogger } from '@linuxpilot/logger';
 import { AppModule } from './app.module';
 import { loadAuthEnv } from './config/env';
@@ -10,6 +10,11 @@ import { LOGGER } from './common/logger/logger.token';
 import { requestIdMiddleware } from './common/middleware/request-id.middleware';
 
 loadDotenv();
+
+installProcessGuards({
+  service: 'auth-service',
+  logger: createLogger({ name: 'auth-service', level: 'error' }),
+});
 
 async function bootstrap(): Promise<void> {
   const env = loadAuthEnv();
@@ -25,7 +30,14 @@ async function bootstrap(): Promise<void> {
   app.use(requestIdMiddleware);
   app.enableShutdownHooks();
 
-  const server = await app.listen(env.AUTH_SERVICE_PORT, env.AUTH_SERVICE_HOST);
+  const server = await listenWithRetry(
+    () => app.listen(env.AUTH_SERVICE_PORT, env.AUTH_SERVICE_HOST),
+    {
+      onRetry: (attempt, error) => {
+        logger.warn({ attempt, err: error }, 'Listen address still in use, retrying');
+      },
+    },
+  );
   server.keepAliveTimeout = 65_000;
   logger.info({ port: env.AUTH_SERVICE_PORT, host: env.AUTH_SERVICE_HOST }, 'Auth service started');
 

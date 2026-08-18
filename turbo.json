@@ -16,7 +16,12 @@
     },
     "test:e2e": {
       "dependsOn": ["^build"],
-      "env": ["DATABASE_URL", "DATABASE_URL_TEST"]
+      "env": [
+        "DATABASE_URL",
+        "DATABASE_URL_TEST",
+        "DATABASE_URL_SERVERS",
+        "DATABASE_URL_SERVERS_TEST"
+      ]
     },
     "dev": {
       "cache": false,

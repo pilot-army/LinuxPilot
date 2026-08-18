@@ -12,6 +12,7 @@ COPY packages/auth-contracts/package.json packages/auth-contracts/package.json
 COPY packages/common/package.json packages/common/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/logger/package.json packages/logger/package.json
+COPY packages/server-contracts/package.json packages/server-contracts/package.json
 COPY packages/tsconfig packages/tsconfig
 COPY gateway/api-gateway/package.json gateway/api-gateway/package.json
 RUN pnpm install --frozen-lockfile --filter @linuxpilot/api-gateway...
@@ -19,6 +20,7 @@ COPY packages/auth-contracts packages/auth-contracts
 COPY packages/common packages/common
 COPY packages/config packages/config
 COPY packages/logger packages/logger
+COPY packages/server-contracts packages/server-contracts
 COPY gateway/api-gateway gateway/api-gateway
 RUN pnpm --filter @linuxpilot/api-gateway... build
 
@@ -30,12 +32,14 @@ COPY packages/auth-contracts/package.json packages/auth-contracts/package.json
 COPY packages/common/package.json packages/common/package.json
 COPY packages/config/package.json packages/config/package.json
 COPY packages/logger/package.json packages/logger/package.json
+COPY packages/server-contracts/package.json packages/server-contracts/package.json
 COPY packages/tsconfig packages/tsconfig
 COPY gateway/api-gateway/package.json gateway/api-gateway/package.json
 COPY --from=build /app/packages/auth-contracts/dist packages/auth-contracts/dist
 COPY --from=build /app/packages/common/dist packages/common/dist
 COPY --from=build /app/packages/config/dist packages/config/dist
 COPY --from=build /app/packages/logger/dist packages/logger/dist
+COPY --from=build /app/packages/server-contracts/dist packages/server-contracts/dist
 COPY --from=build /app/gateway/api-gateway/dist gateway/api-gateway/dist
 RUN pnpm install --frozen-lockfile --prod --filter @linuxpilot/api-gateway... \
   && chown -R linuxpilot:linuxpilot /app

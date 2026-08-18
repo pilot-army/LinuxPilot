@@ -12,6 +12,7 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/coverage/**',
       '**/prisma/migrations/**',
+      '**/src/generated/**',
       '**/vite.config.ts',
       '**/jest.config.ts',
       '**/test/jest-e2e.config.ts',
@@ -52,7 +53,9 @@ export default tseslint.config(
   {
     files: [
       'services/auth-service/src/**/*.ts',
+      'services/server-service/src/**/*.ts',
       'gateway/api-gateway/src/**/*.ts',
+      'apps/agent/src/**/*.ts',
       'packages/common/src/**/*.ts',
       'packages/config/src/**/*.ts',
     ],

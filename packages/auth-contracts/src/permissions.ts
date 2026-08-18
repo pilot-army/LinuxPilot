@@ -16,6 +16,14 @@ export const PERMISSIONS = {
   SERVICES_MANAGE: 'services.manage',
   LOGS_VIEW: 'logs.view',
   AUDIT_VIEW: 'audit.view',
+  SSH_KEYS_READ: 'ssh_keys.read',
+  SSH_KEYS_CREATE: 'ssh_keys.create',
+  SSH_KEYS_UPDATE: 'ssh_keys.update',
+  SSH_KEYS_USE: 'ssh_keys.use',
+  SSH_KEYS_ROTATE: 'ssh_keys.rotate',
+  SSH_KEYS_DISABLE: 'ssh_keys.disable',
+  SSH_KEYS_DELETE: 'ssh_keys.delete',
+  SSH_KEYS_INSTALL: 'ssh_keys.install',
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -40,4 +48,12 @@ export const PERMISSION_DESCRIPTIONS: Record<PermissionCode, string> = {
   [PERMISSIONS.SERVICES_MANAGE]: 'Manage systemd services',
   [PERMISSIONS.LOGS_VIEW]: 'View logs',
   [PERMISSIONS.AUDIT_VIEW]: 'View audit events',
+  [PERMISSIONS.SSH_KEYS_READ]: 'View SSH key metadata',
+  [PERMISSIONS.SSH_KEYS_CREATE]: 'Create and import SSH keys',
+  [PERMISSIONS.SSH_KEYS_UPDATE]: 'Update SSH key metadata',
+  [PERMISSIONS.SSH_KEYS_USE]: 'Use SSH keys for connections',
+  [PERMISSIONS.SSH_KEYS_ROTATE]: 'Rotate SSH keys',
+  [PERMISSIONS.SSH_KEYS_DISABLE]: 'Disable SSH keys',
+  [PERMISSIONS.SSH_KEYS_DELETE]: 'Delete SSH keys',
+  [PERMISSIONS.SSH_KEYS_INSTALL]: 'Install SSH keys on servers',
 };

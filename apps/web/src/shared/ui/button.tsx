@@ -3,12 +3,16 @@ import styles from './button.module.css';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'md' | 'sm';
+  block?: boolean;
   loading?: boolean;
   children: ReactNode;
 };
 
 export function Button({
   variant = 'primary',
+  size = 'md',
+  block,
   loading = false,
   disabled,
   children,
@@ -16,7 +20,16 @@ export function Button({
   type = 'button',
   ...props
 }: ButtonProps) {
-  const classes = [styles.button, styles[variant], className].filter(Boolean).join(' ');
+  const isBlock = block ?? (variant !== 'ghost' && size !== 'sm');
+  const classes = [
+    styles.button,
+    styles[variant],
+    size === 'sm' ? styles.sm : '',
+    isBlock ? styles.block : styles.inline,
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <button

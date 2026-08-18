@@ -21,6 +21,15 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+let currentUserInFlight: Promise<{ user: PublicUser }> | null = null;
+
+function loadCurrentUser() {
+  currentUserInFlight ??= fetchCurrentUser().finally(() => {
+    currentUserInFlight = null;
+  });
+  return currentUserInFlight;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>('loading');
   const [user, setUser] = useState<PublicUser | null>(null);
@@ -29,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    fetchCurrentUser()
+    loadCurrentUser()
       .then((result) => {
         if (cancelled) return;
         setUser(result.user);

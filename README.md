@@ -6,15 +6,17 @@
 
 LinuxPilot is a control plane for Linux servers. After sign-in, an operator sees a fleet dashboard, selects a host, and works with that host through focused sections: overview, terminal, Docker, databases, files, systemd, processes, logs, network, firewall, cron, and backups.
 
-This repository currently ships the monorepo foundation and a complete **Auth Service**. Host management services are not implemented yet.
+This repository currently ships the monorepo foundation, a complete **Auth Service**, and the **Servers** MVP: Linux agent enrollment, heartbeat, and read-only host metrics.
 
 ## Architecture
 
 The system is a pnpm + Turborepo monorepo:
 
 - `apps/web` — React UI
-- `gateway/api-gateway` — public NestJS entry point
+- `apps/agent` — Linux heartbeat agent
+- `gateway/api-gateway` — public NestJS entry point and agent ingress
 - `services/auth-service` — private NestJS auth microservice
+- `services/server-service` — private NestJS servers microservice
 - `packages/*` — shared TypeScript contracts and libraries
 
 The browser talks only to the API Gateway. The gateway forwards `/api/v1/auth/*` to Auth Service over an internal HTTP API, sets HttpOnly cookies, and never reads the auth database.
@@ -45,6 +47,7 @@ All required variables are documented in [`.env.example`](.env.example). Applica
 Service-specific templates:
 
 - `services/auth-service/.env.example`
+- `services/server-service/.env.example`
 - `gateway/api-gateway/.env.example`
 
 ## Development
@@ -59,6 +62,8 @@ pnpm auth:create-admin
 pnpm dev
 ```
 
+`pnpm dev` starts the web UI, API gateway, auth service, and server service. The Linux agent (`apps/agent`) is not part of that stack — run it on a host with `linuxpilot-agent enroll` / `linuxpilot-agent run`.
+
 Default local URLs:
 
 - UI: http://localhost:8080
@@ -67,11 +72,11 @@ Default local URLs:
 
 Local `docker compose up` serves the UI from Vite on http://localhost:8080, so source edits show up immediately. The Vite server proxies `/api` to the gateway. Tokens stay in cookies (`credentials: "include"`).
 
-The current UI is the sign-in page at `/login` and a temporary `/dashboard` used only to confirm a successful session. Design tokens live in `apps/web/src/shared/styles`.
+The UI includes sign-in at `/login`, a session dashboard, and **Servers** at `/servers`. Design tokens live in `apps/web/src/shared/styles`.
 
 ## Docker Compose
 
-Compose starts PostgreSQL, Auth Service, API Gateway, and the web UI in the background. Every service uses `restart: unless-stopped`, so the stack stays up after a crash or a Docker Desktop restart until you run `docker compose down`.
+Compose starts PostgreSQL, Auth Service, Server Service, API Gateway, and the web UI in the background. Every service uses `restart: unless-stopped`, so the stack stays up after a crash or a Docker Desktop restart until you run `docker compose down`.
 
 ```bash
 cp .env.example .env
@@ -106,7 +111,7 @@ pnpm db:migrate
 pnpm db:seed
 ```
 
-Auth Service uses its own Prisma schema and the `linuxpilot_auth` database. Automated tests use `linuxpilot_auth_test`.
+Auth Service uses its own Prisma schema and the `linuxpilot_auth` database. Server Service uses `linuxpilot_servers`. Automated tests use `linuxpilot_auth_test` and `linuxpilot_servers_test`.
 
 ## First administrator
 
@@ -146,10 +151,10 @@ pnpm build
 
 ```text
 LinuxPilot/
-├── apps/web
+├── apps/{web,agent}
 ├── gateway/api-gateway
-├── services/auth-service
-├── packages/{auth-contracts,common,config,i18n,logger,tsconfig}
+├── services/{auth-service,server-service}
+├── packages/{auth-contracts,server-contracts,common,config,i18n,logger,tsconfig}
 ├── infrastructure/{docker,postgres}
 ├── docs
 ├── scripts
@@ -170,6 +175,29 @@ Gateway prefix: `/api/v1`. Auth Service internal prefix: `/auth`.
 | GET | `/api/v1/auth/sessions` | `/auth/sessions` | Active sessions |
 | DELETE | `/api/v1/auth/sessions/:sessionId` | `/auth/sessions/:sessionId` | Revoke one session |
 | GET | `/health` | `/health` | Liveness / readiness |
+
+## Servers API
+
+Gateway prefix: `/api/v1`. Server Service browser prefix: `/servers`. Agent ingress: `/api/v1/agent`.
+
+| Method | Gateway | Permission | Notes |
+| --- | --- | --- | --- |
+| GET | `/api/v1/servers` | `servers.view` | Paginated list |
+| POST | `/api/v1/servers` | `servers.create` | Create pending server |
+| GET | `/api/v1/servers/:id` | `servers.view` | Server detail |
+| PATCH | `/api/v1/servers/:id` | `servers.update` | Name, description, tags |
+| DELETE | `/api/v1/servers/:id` | `servers.delete` | Soft-delete + revoke |
+| POST | `/api/v1/servers/:id/enrollment-token` | `servers.create` | One-time token, shown once |
+| POST | `/api/v1/servers/:id/revoke` | `servers.delete` | Block the agent |
+| POST | `/api/v1/servers/:id/rotate-credential` | `servers.create` | Invalidate current key |
+| GET | `/api/v1/ssh-keys` | `ssh_keys.read` | SSH key catalog; safe DTO only |
+| POST | `/api/v1/ssh-keys/import` | `ssh_keys.create` | Import a private key |
+| POST | `/api/v1/ssh-keys/public` | `ssh_keys.create` | Store a public key |
+| POST | `/api/v1/ssh-keys/generate` | `ssh_keys.create` | Generate a key pair |
+| GET | `/api/v1/servers/:id/metrics` | `servers.view` | Metric history |
+| POST | `/api/v1/agent/enroll` | agent token | No cookies / CSRF |
+| POST | `/api/v1/agent/heartbeat` | Ed25519 | No cookies / CSRF |
+| POST | `/api/v1/agent/rotate` | Ed25519 | No cookies / CSRF |
 
 Success envelope:
 

@@ -1,0 +1,378 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma-client"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ServerStatus {
+  PENDING
+  ONLINE
+  DEGRADED
+  OFFLINE
+  REVOKED
+  MAINTENANCE
+}
+
+enum AgentStatus {
+  CONNECTED
+  DISCONNECTED
+  NOT_INSTALLED
+  REVOKED
+  OUTDATED
+}
+
+enum CredentialStatus {
+  ACTIVE
+  REVOKED
+  ROTATED
+}
+
+enum EnrollmentPurpose {
+  ENROLL
+  ROTATE
+}
+
+enum OperationType {
+  REBOOT
+  SHUTDOWN
+  REFRESH_INVENTORY
+  REFRESH_METRICS
+  CHECK_UPDATES
+  UPDATE_AGENT
+}
+
+enum OperationStatus {
+  PENDING
+  DELIVERED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+model ServerSpace {
+  id                    String   @id @default(uuid()) @db.Uuid
+  name                  String
+  slug                  String
+  description           String   @default("")
+  icon                  String   @default("server")
+  color                 String   @default("#3b82f6")
+  tags                  String[] @default([])
+  notificationsEnabled  Boolean  @default(true)
+  version               Int      @default(1)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  servers               Server[]
+
+  @@unique([name])
+  @@unique([slug])
+}
+
+model Server {
+  id                   String       @id @default(uuid()) @db.Uuid
+  name                 String
+  hostname             String?
+  primaryIp            String?
+  description          String       @default("")
+  status               ServerStatus @default(PENDING)
+  agentStatus          AgentStatus  @default(NOT_INSTALLED)
+  osName               String?
+  osVersion            String?
+  kernelVersion        String?
+  architecture         String?
+  autoDetectSystem     Boolean      @default(true)
+  cpuCores             Int?
+  memoryTotalBytes     BigInt?
+  diskTotalBytes       BigInt?
+  agentVersion         String?
+  lastSeenAt           DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  createdByUserId      String       @db.Uuid
+  deletedAt            DateTime?
+  tags                 String[]     @default([])
+  currentCredentialId  String?      @db.Uuid
+  sshKeyId             String?      @db.Uuid
+  sshKey               SshKey?      @relation(fields: [sshKeyId], references: [id], onDelete: SetNull)
+  sshUser              String?
+  sshPort              Int?
+  spaceId              String?      @db.Uuid
+  space                ServerSpace? @relation(fields: [spaceId], references: [id], onDelete: SetNull)
+  maintenanceMode      Boolean      @default(false)
+  maintenanceReason    String?
+  maintenanceStartsAt  DateTime?
+  maintenanceEndsAt    DateTime?
+  maintenanceCreatedBy String?      @db.Uuid
+  version              Int          @default(1)
+  lastHealthStatus     String?
+  lastHealthReasons    Json?
+  healthUpdatedAt      DateTime?
+
+  credentials      AgentCredential[]
+  enrollmentTokens EnrollmentToken[]
+  metrics          ServerMetric[]
+  auditLogs        ServerAuditLog[]
+  events           ServerEvent[]
+  operations       ServerOperation[]
+  updateStatus     ServerUpdateStatus?
+
+  @@index([status])
+  @@index([agentStatus])
+  @@index([deletedAt])
+  @@index([lastSeenAt])
+  @@index([createdByUserId])
+  @@index([name])
+  @@index([hostname])
+  @@index([spaceId])
+  @@index([maintenanceMode])
+  @@index([sshKeyId])
+}
+
+model AgentCredential {
+  id         String           @id @default(uuid()) @db.Uuid
+  serverId   String           @db.Uuid
+  server     Server           @relation(fields: [serverId], references: [id], onDelete: Restrict)
+  publicKey  String
+  status     CredentialStatus @default(ACTIVE)
+  createdAt  DateTime         @default(now())
+  rotatedAt  DateTime?
+  revokedAt  DateTime?
+  lastUsedAt DateTime?
+
+  @@index([serverId, status])
+}
+
+model EnrollmentToken {
+  id        String            @id @default(uuid()) @db.Uuid
+  serverId  String            @db.Uuid
+  server    Server            @relation(fields: [serverId], references: [id], onDelete: Restrict)
+  tokenHash String            @unique
+  purpose   EnrollmentPurpose
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime          @default(now())
+
+  @@index([serverId, usedAt])
+  @@index([expiresAt])
+}
+
+model ServerMetric {
+  id               String   @id @default(uuid()) @db.Uuid
+  serverId         String   @db.Uuid
+  server           Server   @relation(fields: [serverId], references: [id], onDelete: Restrict)
+  timestamp        DateTime
+  cpuUsagePercent  Decimal? @db.Decimal(5, 2)
+  load1            Decimal? @db.Decimal(8, 2)
+  load5            Decimal? @db.Decimal(8, 2)
+  load15           Decimal? @db.Decimal(8, 2)
+  memoryUsedBytes  BigInt?
+  memoryTotalBytes BigInt?
+  swapUsedBytes    BigInt?
+  swapTotalBytes   BigInt?
+  uptimeSeconds    BigInt?
+  processCount     Int?
+  disks            Json
+  incomplete       Boolean  @default(false)
+  networkRxBytes   BigInt?
+  networkTxBytes   BigInt?
+
+  @@index([serverId, timestamp(sort: Desc)])
+  @@index([timestamp])
+}
+
+enum SshKeyType {
+  PRIVATE_KEY
+  PUBLIC_KEY
+  GENERATED_KEYPAIR
+  SSH_AGENT
+  EXTERNAL_PROVIDER
+}
+
+enum SshKeyAlgorithm {
+  ED25519
+  RSA
+  ECDSA
+}
+
+enum SshKeyStatus {
+  ACTIVE
+  UNUSED
+  ROTATION_REQUIRED
+  EXPIRED
+  DISABLED
+  COMPROMISED
+  DELETING
+}
+
+enum SshKeyUsageKind {
+  SERVER
+  SPACE
+  TEMPLATE
+  BASTION
+  OPERATION
+}
+
+enum SshKeyActivityType {
+  CREATED
+  IMPORTED
+  ASSIGNED
+  USED
+  UPDATED
+  ROTATED
+  DISABLED
+  DELETED
+  INSTALLED
+}
+
+model SshKey {
+  id                   String          @id @default(uuid()) @db.Uuid
+  name                 String
+  description          String          @default("")
+  type                 SshKeyType
+  algorithm            SshKeyAlgorithm
+  keySize              Int?
+  fingerprint          String
+  publicKey            String
+  encryptedPrivateKey  Bytes?
+  wrappedDek           Bytes?
+  nonce                Bytes?
+  wrapNonce            Bytes?
+  encryptionKeyVersion String?
+  status               SshKeyStatus    @default(UNUSED)
+  tags                 String[]        @default([])
+  source               String          @default("import")
+  createdByUserId      String          @db.Uuid
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  lastUsedAt           DateTime?
+  rotatedAt            DateTime?
+  rotationDueAt        DateTime?
+  deletedAt            DateTime?
+  version              Int             @default(1)
+
+  usages     SshKeyUsage[]
+  activities SshKeyActivity[]
+  servers    Server[]
+
+  @@index([fingerprint])
+  @@index([status])
+  @@index([deletedAt])
+  @@index([createdAt])
+  @@index([name])
+}
+
+model SshKeyUsage {
+  id        String          @id @default(uuid()) @db.Uuid
+  sshKeyId  String          @db.Uuid
+  sshKey    SshKey          @relation(fields: [sshKeyId], references: [id], onDelete: Restrict)
+  kind      SshKeyUsageKind
+  targetId  String          @db.Uuid
+  label     String          @default("")
+  createdAt DateTime        @default(now())
+
+  @@unique([sshKeyId, kind, targetId])
+  @@index([sshKeyId])
+  @@index([kind, targetId])
+}
+
+model SshKeyActivity {
+  id        String             @id @default(uuid()) @db.Uuid
+  sshKeyId  String             @db.Uuid
+  sshKey    SshKey             @relation(fields: [sshKeyId], references: [id], onDelete: Restrict)
+  type      SshKeyActivityType
+  actorId   String?            @db.Uuid
+  metadata  Json?
+  createdAt DateTime           @default(now())
+
+  @@index([sshKeyId, createdAt])
+}
+
+model AgentNonce {
+  nonce     String   @id
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
+model ServerAuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @db.Uuid
+  action     String
+  targetType String
+  targetId   String?
+  requestId  String?
+  ipAddress  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  serverId   String?  @db.Uuid
+  server     Server?  @relation(fields: [serverId], references: [id], onDelete: SetNull)
+  result     String   @default("success")
+
+  @@index([serverId, createdAt])
+  @@index([action])
+  @@index([createdAt])
+  @@index([targetType, targetId])
+  @@index([actorId, createdAt])
+}
+
+model ServerEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  serverId   String?  @db.Uuid
+  server     Server?  @relation(fields: [serverId], references: [id], onDelete: SetNull)
+  type       String
+  severity   String
+  source     String
+  messageKey String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([serverId, createdAt])
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([source])
+}
+
+model ServerUpdateStatus {
+  id                    String    @id @default(uuid()) @db.Uuid
+  serverId              String    @unique @db.Uuid
+  server                Server    @relation(fields: [serverId], references: [id], onDelete: Restrict)
+  availableUpdates      Int       @default(0)
+  securityUpdates       Int       @default(0)
+  lastCheckedAt         DateTime?
+  rebootRequired        Boolean   @default(false)
+  packages              Json?
+  currentAgentVersion   String?
+  availableAgentVersion String?
+  updatedAt             DateTime  @updatedAt
+}
+
+model ServerOperation {
+  id             String          @id @default(uuid()) @db.Uuid
+  serverId       String          @db.Uuid
+  server         Server          @relation(fields: [serverId], references: [id], onDelete: Restrict)
+  type           OperationType
+  status         OperationStatus @default(PENDING)
+  requestedBy    String?         @db.Uuid
+  idempotencyKey String?
+  payload        Json?
+  createdAt      DateTime        @default(now())
+  deliveredAt    DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  expiresAt      DateTime
+  errorCode      String?
+  result         Json?
+  version        Int             @default(1)
+
+  @@unique([serverId, idempotencyKey])
+  @@index([serverId, createdAt])
+  @@index([status, expiresAt])
+  @@index([requestedBy, createdAt])
+}

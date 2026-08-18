@@ -4,16 +4,19 @@ import styles from './logo.module.css';
 type LogoProps = {
   compact?: boolean;
   showTagline?: boolean;
+  showWordmark?: boolean;
 };
 
-export function Logo({ compact = false, showTagline = false }: LogoProps) {
+export function Logo({ compact = false, showTagline = false, showWordmark = true }: LogoProps) {
   return (
     <span className={`${styles.brand} ${compact ? styles.compact : ''}`}>
       <BrandMark className={styles.mark} size={compact ? 36 : 40} />
-      <span className={styles.wordmark}>
-        <span className={styles.name}>LinuxPilot</span>
-        {showTagline ? <span className={styles.tag}>Server Control Center</span> : null}
-      </span>
+      {showWordmark ? (
+        <span className={styles.wordmark} data-logo-wordmark="">
+          <span className={styles.name}>LinuxPilot</span>
+          {showTagline ? <span className={styles.tag}>Server Control Center</span> : null}
+        </span>
+      ) : null}
     </span>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useGatewayHealth } from '../../features/auth/use-gateway-health';
 import { useI18n } from '../../i18n';
 import { SystemStatus } from './system-status';
 import { SystemTerminal } from './system-terminal';
@@ -25,6 +26,7 @@ function useDesktopArt() {
 export function InfrastructureOverview() {
   const { messages } = useI18n();
   const showArt = useDesktopArt();
+  const { status, health } = useGatewayHealth();
 
   return (
     <div className={styles.overview}>
@@ -88,8 +90,8 @@ export function InfrastructureOverview() {
         <h1 id="auth-hero-title">{messages.auth.hero.title}</h1>
         <p className={styles.description}>{messages.auth.hero.description}</p>
         <div className={styles.statusStack}>
-          <SystemStatus />
-          <SystemTerminal />
+          <SystemStatus status={status} healthStatus={health?.status} />
+          <SystemTerminal status={status} health={health} />
         </div>
       </section>
     </div>

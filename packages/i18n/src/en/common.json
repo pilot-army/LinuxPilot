@@ -16,9 +16,15 @@
   "status": {
     "loading": "Loading..."
   },
+  "crash": {
+    "title": "This screen failed to load",
+    "body": "A rendering error stopped this page. Retry without restarting LinuxPilot.",
+    "retry": "Retry"
+  },
   "labels": {
     "search": "Search",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "copy": "Copy"
   },
   "answers": {
     "yes": "Yes",

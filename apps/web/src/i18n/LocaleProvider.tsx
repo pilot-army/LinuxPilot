@@ -31,13 +31,14 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     applyDocumentLang(next);
   }, []);
 
+  const messages = resources[locale];
   const value = useMemo<LocaleContextValue>(
     () => ({
       locale,
-      messages: resources[locale],
+      messages,
       setLocale,
     }),
-    [locale, setLocale],
+    [locale, messages, setLocale],
   );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;

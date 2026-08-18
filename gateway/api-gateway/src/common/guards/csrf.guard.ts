@@ -14,7 +14,7 @@ export class CsrfGuard implements CanActivate {
     if (!MUTATING_METHODS.has(request.method.toUpperCase())) {
       return true;
     }
-    if (CSRF_EXEMPT_PATHS.has(request.path)) {
+    if (CSRF_EXEMPT_PATHS.has(request.path) || request.path.startsWith('/api/v1/agent')) {
       return true;
     }
 

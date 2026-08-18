@@ -3,7 +3,7 @@ import { config as loadDotenv } from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { type NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import { REQUEST_BODY_LIMIT } from '@linuxpilot/common';
+import { installProcessGuards, listenWithRetry } from '@linuxpilot/common';
 import { createLogger, type AppLogger } from '@linuxpilot/logger';
 import { AppModule } from './app.module';
 import { loadGatewayEnv } from './config/env';
@@ -14,13 +14,20 @@ import { securityHeadersMiddleware } from './common/middleware/security-headers.
 
 loadDotenv();
 
+installProcessGuards({
+  service: 'api-gateway',
+  logger: createLogger({ name: 'api-gateway', level: 'error' }),
+});
+
 async function bootstrap(): Promise<void> {
   const env = loadGatewayEnv();
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: false,
+    rawBody: true,
   });
 
-  app.useBodyParser('json', { limit: REQUEST_BODY_LIMIT });
+  const bodyLimitKb = Math.max(32, Math.ceil(env.AGENT_REQUEST_BODY_LIMIT / 1024));
+  app.useBodyParser('json', { limit: `${bodyLimitKb}kb` });
   app.disable('x-powered-by');
   app.set('trust proxy', env.TRUST_PROXY ? env.TRUST_PROXY_HOPS : false);
 
@@ -35,7 +42,11 @@ async function bootstrap(): Promise<void> {
   });
   app.enableShutdownHooks();
 
-  const server = await app.listen(env.GATEWAY_PORT, env.GATEWAY_HOST);
+  const server = await listenWithRetry(() => app.listen(env.GATEWAY_PORT, env.GATEWAY_HOST), {
+    onRetry: (attempt, error) => {
+      logger.warn({ attempt, err: error }, 'Listen address still in use, retrying');
+    },
+  });
   server.keepAliveTimeout = 65_000;
   logger.info({ port: env.GATEWAY_PORT, origin: env.FRONTEND_ORIGIN }, 'API gateway started');
 

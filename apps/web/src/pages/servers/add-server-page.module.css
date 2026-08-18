@@ -1,0 +1,65 @@
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-secondary);
+}
+
+.form,
+.panel {
+  max-width: 36rem;
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.panel {
+  padding: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.wizard {
+  max-width: 40rem;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.field select {
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  color: inherit;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.panel code {
+  display: block;
+  overflow-x: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  word-break: break-all;
+}

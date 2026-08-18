@@ -8,6 +8,11 @@ export const gatewayEnvSchema = z.object({
   FRONTEND_ORIGIN: nonEmptyString('FRONTEND_ORIGIN'),
   AUTH_SERVICE_URL: nonEmptyString('AUTH_SERVICE_URL'),
   AUTH_SERVICE_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+  SERVER_SERVICE_URL: nonEmptyString('SERVER_SERVICE_URL'),
+  SERVER_SERVICE_TIMEOUT_MS: z.coerce.number().int().positive().default(5000),
+  AGENT_RATE_LIMIT: z.coerce.number().int().positive().default(30),
+  AGENT_RATE_LIMIT_TTL_MS: z.coerce.number().int().positive().default(60_000),
+  AGENT_REQUEST_BODY_LIMIT: z.coerce.number().int().min(1024).max(1_048_576).default(32_768),
   JWT_ISSUER: nonEmptyString('JWT_ISSUER'),
   JWT_AUDIENCE: nonEmptyString('JWT_AUDIENCE'),
   JWT_ACCESS_TTL: z

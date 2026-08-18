@@ -55,4 +55,15 @@
   .name {
     font-size: 1.05rem;
   }
+
+  .compact .mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .compact .name {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 18px;
+  }
 }

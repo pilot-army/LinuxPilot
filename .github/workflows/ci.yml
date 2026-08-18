@@ -35,6 +35,8 @@ jobs:
       NODE_ENV: test
       DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_auth_test
       DATABASE_URL_TEST: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_auth_test
+      DATABASE_URL_SERVERS: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
+      DATABASE_URL_SERVERS_TEST: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
       SERVICE_AUTH_SECRET: ci-service-auth-secret-min-32-chars
       JWT_ISSUER: linuxpilot-auth
       JWT_AUDIENCE: linuxpilot-gateway
@@ -75,8 +77,29 @@ jobs:
       - name: Unit tests
         run: pnpm test
 
+      - name: Create server-service test databases
+        run: |
+          docker run --rm --network host -e PGPASSWORD=linuxpilot_test_password postgres:16-alpine \
+            psql -h 127.0.0.1 -U linuxpilot -d postgres -v ON_ERROR_STOP=1 -c "CREATE DATABASE linuxpilot_servers_test;" -c "CREATE DATABASE linuxpilot_servers_shadow;"
+
       - name: Auth service e2e
         run: pnpm --filter @linuxpilot/auth-service test:e2e
+
+      - name: Server service e2e
+        env:
+          DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
+          JWT_ACCESS_PUBLIC_KEY_PATH: ${{ github.workspace }}/secrets/jwt-public.pem
+          JWT_ACCESS_PRIVATE_KEY_PATH: ${{ github.workspace }}/secrets/jwt-private.pem
+          SERVER_SERVICE_PORT: 3002
+          SERVER_SERVICE_HOST: 127.0.0.1
+          PUBLIC_GATEWAY_URL: http://127.0.0.1:3000
+          HEARTBEAT_INTERVAL_MS: '30000'
+          OFFLINE_TIMEOUT_MS: '90000'
+          ENROLLMENT_TOKEN_TTL_MS: '900000'
+          METRICS_RETENTION_DAYS: '14'
+          AGENT_TIMESTAMP_WINDOW_MS: '30000'
+          AGENT_REQUEST_BODY_LIMIT: '32768'
+        run: pnpm --filter @linuxpilot/server-service test:e2e
 
       - name: Production build
         run: pnpm build
@@ -85,14 +108,35 @@ jobs:
         working-directory: services/auth-service
         run: pnpm exec prisma migrate deploy
 
+      - name: Server Prisma migrate deploy
+        working-directory: services/server-service
+        env:
+          DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
+        run: pnpm exec prisma migrate deploy
+
       - name: Prisma schema validate
         working-directory: services/auth-service
+        run: pnpm exec prisma validate
+
+      - name: Server Prisma schema validate
+        working-directory: services/server-service
+        env:
+          DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
         run: pnpm exec prisma validate
 
       - name: Prisma drift check
         working-directory: services/auth-service
         env:
           SHADOW_DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_auth_shadow
+        run: |
+          pnpm exec prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
+          pnpm exec prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "$SHADOW_DATABASE_URL" --exit-code
+
+      - name: Server Prisma drift check
+        working-directory: services/server-service
+        env:
+          DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
+          SHADOW_DATABASE_URL: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_shadow
         run: |
           pnpm exec prisma migrate diff --from-url "$DATABASE_URL" --to-schema-datamodel prisma/schema.prisma --exit-code
           pnpm exec prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma --shadow-database-url "$SHADOW_DATABASE_URL" --exit-code
@@ -114,6 +158,7 @@ jobs:
           pnpm db:seed
           pnpm auth:create-admin
           pnpm auth:create-admin
+          AUTH_ADMIN_EMAIL=e2e-viewer@example.com AUTH_ADMIN_USERNAME=e2eviewer AUTH_ADMIN_PASSWORD=CorrectHorse-Battery9 AUTH_ADMIN_ROLE=viewer pnpm auth:create-admin
 
       - name: Dependency audit
         run: pnpm audit --prod --audit-level high
@@ -132,6 +177,7 @@ jobs:
       - name: Docker images
         run: |
           docker build -f services/auth-service/Dockerfile -t linuxpilot-auth-service .
+          docker build -f services/server-service/Dockerfile -t linuxpilot-server-service .
           docker build -f gateway/api-gateway/Dockerfile -t linuxpilot-api-gateway .
 
       - name: Install Playwright browser
@@ -145,6 +191,19 @@ jobs:
           GATEWAY_HOST: 127.0.0.1
           FRONTEND_ORIGIN: http://127.0.0.1:4173
           AUTH_SERVICE_URL: http://127.0.0.1:3001
+          SERVER_SERVICE_URL: http://127.0.0.1:3002
+          SERVER_SERVICE_PORT: 3002
+          SERVER_SERVICE_HOST: 127.0.0.1
+          DATABASE_URL_SERVERS: postgresql://linuxpilot:linuxpilot_test_password@localhost:5432/linuxpilot_servers_test
+          PUBLIC_GATEWAY_URL: http://127.0.0.1:4173
+          HEARTBEAT_INTERVAL_MS: '30000'
+          OFFLINE_TIMEOUT_MS: '90000'
+          ENROLLMENT_TOKEN_TTL_MS: '900000'
+          METRICS_RETENTION_DAYS: '14'
+          AGENT_TIMESTAMP_WINDOW_MS: '30000'
+          AGENT_REQUEST_BODY_LIMIT: '32768'
+          E2E_VIEWER_EMAIL: e2e-viewer@example.com
+          E2E_VIEWER_PASSWORD: CorrectHorse-Battery9
           COOKIE_SECURE: 'false'
           TRUST_PROXY: 'false'
           LOGIN_RATE_LIMIT: '20'

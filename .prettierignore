@@ -6,6 +6,7 @@ coverage
 .turbo
 pnpm-lock.yaml
 prisma/migrations
+services/server-service/src/generated
 *.md
 playwright-report
 test-results

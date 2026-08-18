@@ -7,6 +7,10 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "incremental": true
+    "incremental": true,
+    "noEmitOnError": true
+  },
+  "watchOptions": {
+    "excludeDirectories": ["**/generated", "**/dist", "**/node_modules"]
   }
 }

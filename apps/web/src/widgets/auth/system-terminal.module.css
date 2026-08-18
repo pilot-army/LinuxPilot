@@ -76,16 +76,23 @@
 }
 
 .bullet {
-  color: #4ade80;
+  color: #94a3b8;
 }
 
 .name {
   color: #e8eef7;
 }
 
-.active,
-.protected {
+.ok {
   color: #4ade80;
+}
+
+.degraded {
+  color: #fbbf24;
+}
+
+.unavailable {
+  color: #f87171;
 }
 
 .cursor {
